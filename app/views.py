@@ -9,7 +9,7 @@ from app import app,db , login_manager
 from flask import render_template, request, jsonify, send_file,  redirect, url_for, flash, session, abort,send_from_directory
 import os
 from app.models import Posts,Likes,Follows,Users
-from app.forms import UserForm,LoginForm, PostsForm
+from app.forms import UserForm,LoginForm, PostForm
 from werkzeug.utils import secure_filename
 import datetime
 from flask_wtf.csrf import generate_csrf
@@ -111,12 +111,13 @@ def logout():
     current_user_id=0
     return jsonify(message='You have Logged-Out Sucessfully')
 
-
-@app.route('/api/v1/users/{user_id}/posts', methods=['POST','GET'])
+#everything below need work
+@app.route('/api/v1/users/<int:user_id>/posts', methods=['POST','GET'])
 def addPosts(user_id):
-    form=PostsForm
+    form=PostForm()
     p_list=[]
     if request.method == 'POST':
+        
         if form.validate_on_submit():
             caption= form.caption.data
             photo_data= form.photo.data
@@ -141,7 +142,7 @@ def addPosts(user_id):
         return jsonify(errors=form_errors(form))
     
     if request.method == 'GET':
-        u_posts = db.session.execute(db.select(Posts).filter_by(user_id=user_id)).scalar()
+        u_posts = db.session.execute(db.select(Posts).filter_by(user_id=user_id)).all()
         for pos in u_posts:
             p_list.append({
                 'id': pos.id,
@@ -152,7 +153,7 @@ def addPosts(user_id):
         return jsonify(data=p_list)
         
         
-@app.route('/api/users/{user_id}/follow', methods=['POST'])
+@app.route('/api/users/<int:user_id>/follow', methods=['POST'])
 def follow(user_id):
     
     follower_id=user_id #assuming the user_id is the target user
@@ -252,4 +253,4 @@ def add_header(response):
 @app.errorhandler(404)
 def page_not_found(error):
     """Custom 404 page."""
-    return render_template('404.html'), 404
+    return jsonify(errors=error)

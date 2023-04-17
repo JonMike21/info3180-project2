@@ -21,6 +21,6 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired()])
 
 
-class PostsForm(FlaskForm):
+class PostForm(FlaskForm):
     caption = TextAreaField('Caption', validators=[InputRequired()])
     photo = FileField('Photo', validators=[FileRequired(),FileAllowed(['jpg', 'png','jpeg','JPG'], 'Images only!')]) 
