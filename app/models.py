@@ -1,5 +1,6 @@
 # Add any model classes for Flask-SQLAlchemy here
 from . import db
+from werkzeug.security import generate_password_hash
 
 class Posts(db.Model):
     __tablename__='posts'
@@ -63,7 +64,7 @@ class Users(db.Model):
    
     def __init__(self, username,password,firstname,lastname,email,location,biography,profile_photo,joined_on):
         self.username = username
-        self.password = password
+        self.password = generate_password_hash(password, method='pbkdf2:sha256')
         self.firstname = firstname
         self.lastname = lastname
         self.email = email
@@ -71,6 +72,21 @@ class Users(db.Model):
         self.biography = biography
         self.profile_photo = profile_photo
         self.joined_on = joined_on
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        try:
+            return unicode(self.id)  # python 2 support
+        except NameError:
+            return str(self.id)  # python 3 support
 
     def __repr__(self):
         return '<users %r>' % (self.username)
