@@ -11,6 +11,6 @@
         name: "AddRegistry",
         components: {
             RegisterForms
-    },
-};
+        }
+    };
 </script>
