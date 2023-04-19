@@ -18,9 +18,6 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 
 
-
-current_user_id=0
-
 ###
 # Routing for your application.
 ###
@@ -41,13 +38,14 @@ def register():
         location= form.location.data
         biography= form.biography.data
         profile_photo_data= form.profile_photo.data
-        #profile_photo= form.profile_photo.data#remove
         profile_photo= secure_filename(profile_photo_data.filename)
         profile_photo_data.save(os.path.join(app.config['UPLOAD_FOLDER'],profile_photo))
 
         joined_on= datetime.datetime.now()
+        #sets saves current time
 
         new_user=Users(username,password,firstname,lastname,email,location,biography,profile_photo,joined_on)
+        #adds new user to db
 
         db.session.add(new_user)
         db.session.commit()
@@ -77,7 +75,6 @@ def get_csrf():
 @app.route('/api/v1/auth/login',methods=['POST'])
 def login():
     form=LoginForm()
-
     
     if form.validate_on_submit():
         username=form.username.data
@@ -85,15 +82,11 @@ def login():
         
         user = db.session.execute(db.select(Users).filter_by(username=username)).scalar()
         if user is not None and check_password_hash(user.password, password):
-            # Gets user id, load into session
+            # Gets user id, load into session; flask login function
             login_user(user)
-            current_user_id=user.id
-            # Remember to flash a message to the user
             return jsonify(result='Logged in successfully.')
-            # The user should be redirected to the upload form instead
         else:
-            return jsonify(result='Username or Password is incorrect.')
-    
+            return jsonify(result='Username or Password is incorrect.')    
     return jsonify(result=form_errors(form))
 
 
@@ -101,17 +94,16 @@ def login():
 @login_manager.user_loader
 def load_user(id):
     return db.session.execute(db.select(Users).filter_by(id=id)).scalar()
-    #not sure y this is needed
+    #gets current login user data from db
 
 
 @app.route('/api/v1/auth/logout',methods=['POST'])
 @login_required
 def logout():
     logout_user()
-    current_user_id=0
     return jsonify(message='You have Logged-Out Sucessfully')
 
-#everything below need work
+
 @app.route('/api/v1/users/<int:user_id>/posts', methods=['POST','GET'])
 def addPosts(user_id):
     form=PostForm()
@@ -121,7 +113,6 @@ def addPosts(user_id):
         if form.validate_on_submit():
             caption= form.caption.data
             photo_data= form.photo.data
-            #profile_photo= form.profile_photo.data#remove
             photo= secure_filename(photo_data.filename)
             photo_data.save(os.path.join(app.config['UPLOAD_FOLDER'],photo))
 
@@ -142,64 +133,73 @@ def addPosts(user_id):
         return jsonify(errors=form_errors(form))
     
     if request.method == 'GET':
-        u_posts = db.session.execute(db.select(Posts).filter_by(user_id=user_id)).all()
+        idd=user_id
+        #u_posts = db.session.execute(db.select(Posts).filter_by(user_id=idd)).scalar() #was giving an error maybe from scalar()
+        u_posts = db.session.query(Posts).filter_by(user_id=idd).all()
         for pos in u_posts:
             p_list.append({
                 'id': pos.id,
                 'caption': pos.caption,
-                'photo': url_for('get_image',filename=pos.photo),
+                'photo': url_for('getImage',filename=pos.photo),
                 'created_at': pos.created_at
                 })
         return jsonify(data=p_list)
         
-        
 @app.route('/api/users/<int:user_id>/follow', methods=['POST'])
+@login_required
 def follow(user_id):
-    
-    follower_id=user_id #assuming the user_id is the target user
-    follow=Follows(follower_id,current_user_id)
+    if current_user.is_authenticated:
+        login_user_id = current_user.id #gets currently logged in user id
+        follower_id=user_id #assuming the user_id is the target user
+        follow=Follows(follower_id,login_user_id)
 
-    db.session.add(follow)
-    db.session.commit() 
+        db.session.add(follow)
+        db.session.commit() 
 
-    follow={
-        'message': 'User was Successfully followed',
-        'follower_id': follower_id,
-        'user_id': current_user_id
-    }
-    return jsonify(follow)
+        follow={
+            'message': 'User was Successfully followed',
+            'follower_id': follower_id,
+            'user_id': login_user_id
+        }
+        return jsonify(follow)
+    return jsonify(message='User not verified')
     
 @app.route('/api/v1/posts', methods=['GET'])
 def viewAllPosts():
     p_list=[]
 
     postss = db.session.execute(db.select(Posts)).scalars()
-    
+
     for post in postss:
         p_list.append({
             'id': post.id,
             'caption': post.caption,
-            'photo': url_for('get_image',filename=post.photo),
+            'photo': url_for('getImage',filename=post.photo),
             'created_at': post.created_at
             })
     return jsonify(data=p_list)
 
 
-@app.route('/api/v1/posts/{post_id}/like', methods=['GET'])
+@app.route('/api/v1/posts/<int:post_id>/like', methods=['POST'])
 def likePosts(post_id):
-    like=Likes(post_id,current_user_id)
+    if current_user.is_authenticated:
+        login_user_id = current_user.id #gets currently logged in user id
+        like=Likes(post_id,login_user_id)
 
-    db.session.add(like)
-    db.session.commit() 
+        db.session.add(like)
+        db.session.commit() 
 
-    follow={
-        'message': 'Post was Successfully added',
-        'post_id': post_id,
-        'user_id': current_user_id
-    }
-    return jsonify(follow)
+        follow={
+            'message': 'Post was Successfully Liked',
+            'post_id': post_id,
+            'user_id': login_user_id
+        }
+        return jsonify(follow)
 
-
+@app.route('/api/v1/photo/<filename>')
+def getImage(filename):
+    val=send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+    return val
     
 
 
