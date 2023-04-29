@@ -1,7 +1,7 @@
 <template>
     <div class="explore-container">
         <div class="post-container">
-            <div v-for="post in posts" :key="post.id">
+            <div v-for="post in posts.slice().reverse()" :key="post.id">
                 <div class="card explore">
                     <h2>{{ post.caption }}</h2>
                     <img :src="post.photo" alt="post image">
@@ -13,7 +13,7 @@
             <router-link to="/posts/new" class="btn btn-primary">New Post</router-link>
         </div>
     </div>
-  </template>
+</template>
   
   
 <script>

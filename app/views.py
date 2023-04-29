@@ -118,12 +118,12 @@ def logout():
 
 
 @app.route('/api/v1/users/<int:user_id>/posts', methods=['POST','GET'])
-@jwt_required
+@jwt_required()
 def addPosts(user_id):
     form=PostForm()
     p_list=[]
 
-    current_user = get_jwt_identity
+    current_user = get_jwt_identity()
 
     if current_user == user_id:
 

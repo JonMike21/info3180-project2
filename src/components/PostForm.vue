@@ -1,5 +1,5 @@
 <template>
-    <form method="POST" enctype="multipart/form-data" @submit.prevent="postData" id="postForm" action="/api/v1/users/{{ user_id }}/posts">
+    <form method="POST" enctype="multipart/form-data" @submit.prevent="postData" id="postForm" >
         <div v-if="postStatus === 'success'" class="alert alert-success" role="alert">
             Post made successfuly! Redirecting to the explore page!
         </div>
@@ -34,7 +34,7 @@ import { RouterLink } from "vue-router";
 const emit = defineEmits(['notification', 'type']);
 
 
-const token = localStorage.getItem('JWT');
+const token = localStorage.getItem('token');
 const userId = localStorage.getItem('user_id');
 const postStatus = ref(null);
 
@@ -60,7 +60,6 @@ function postData() {
     .catch(error => {
         if (userId != null) {
             postStatus.value = 'failed';
-            window.location.href = "#";
         } else {
             postStatus.value = 'fail-safe';
             setTimeout(() => {

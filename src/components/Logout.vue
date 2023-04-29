@@ -35,7 +35,7 @@
                         console.log(localStorage.getItem('token'))
                         console.log('Timer completed!');
                         window.location.href = '/';
-                    }, 3000);
+                    }, 1500);
                 })
                 .catch(error => {
                     console.log(error.response.data)
