@@ -15,6 +15,7 @@ import datetime
 from flask_wtf.csrf import generate_csrf
 from werkzeug.security import check_password_hash
 from flask_login import login_user, logout_user, current_user, login_required
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 
 
@@ -84,9 +85,21 @@ def login():
         if user is not None and check_password_hash(user.password, password):
             # Gets user id, load into session; flask login function
             login_user(user)
-            return jsonify(result='Logged in successfully.')
+            response = {'result' :'Logged in successfully.', 
+                            'id': user.id,
+                            'username': user.username,
+                            'firstname': user.firstname,
+                            'lastname': user.lastname,
+                            'email': user.email,
+                            'location': user.location,
+                            'biography': user.biography,
+                            'profile_photo': user.profile_photo,
+                            'joined_on': user.joined_on,
+                            'token': create_access_token(identity=user.id),
+                            }
+            return jsonify(response),200
         else:
-            return jsonify(result='Username or Password is incorrect.')    
+            return jsonify(result='Username or Password is incorrect.') 
     return jsonify(result=form_errors(form))
 
 
@@ -105,45 +118,53 @@ def logout():
 
 
 @app.route('/api/v1/users/<int:user_id>/posts', methods=['POST','GET'])
+@jwt_required
 def addPosts(user_id):
     form=PostForm()
     p_list=[]
-    if request.method == 'POST':
+
+    current_user = get_jwt_identity
+
+    if current_user == user_id:
+
+        if request.method == 'POST':
+            
+            if form.validate_on_submit():
+                caption= form.caption.data
+                photo_data= form.photo.data
+                photo= secure_filename(photo_data.filename)
+                photo_data.save(os.path.join(app.config['UPLOAD_FOLDER'],photo))
+
+                created_at= datetime.datetime.now()
+
+                post=Posts(caption,photo,user_id,created_at)
+
+                db.session.add(post)
+                db.session.commit() 
+
+                post_n={
+                    'message': 'Post Successfully added',
+                    'caption': caption,
+                    'photo': photo,
+                    'created_at': created_at
+                }
+                return jsonify(post_n)
+            return jsonify(errors=form_errors(form))
         
-        if form.validate_on_submit():
-            caption= form.caption.data
-            photo_data= form.photo.data
-            photo= secure_filename(photo_data.filename)
-            photo_data.save(os.path.join(app.config['UPLOAD_FOLDER'],photo))
-
-            created_at= datetime.datetime.now()
-
-            post=Posts(caption,photo,user_id,created_at)
-
-            db.session.add(post)
-            db.session.commit() 
-
-            post_n={
-                'message': 'Post Successfully added',
-                'caption': caption,
-                'photo': photo,
-                'created_at': created_at
-            }
-            return jsonify(post_n)
-        return jsonify(errors=form_errors(form))
-    
-    if request.method == 'GET':
-        idd=user_id
-        #u_posts = db.session.execute(db.select(Posts).filter_by(user_id=idd)).scalar() #was giving an error maybe from scalar()
-        u_posts = db.session.query(Posts).filter_by(user_id=idd).all()
-        for pos in u_posts:
-            p_list.append({
-                'id': pos.id,
-                'caption': pos.caption,
-                'photo': url_for('getImage',filename=pos.photo),
-                'created_at': pos.created_at
-                })
-        return jsonify(data=p_list)
+        if request.method == 'GET':
+            idd=user_id
+            #u_posts = db.session.execute(db.select(Posts).filter_by(user_id=idd)).scalar() #was giving an error maybe from scalar()
+            u_posts = db.session.query(Posts).filter_by(user_id=idd).all()
+            for pos in u_posts:
+                p_list.append({
+                    'id': pos.id,
+                    'caption': pos.caption,
+                    'photo': url_for('getImage',filename=pos.photo),
+                    'created_at': pos.created_at
+                    })
+            return jsonify(data=p_list)
+    else:
+        return redirect(url_for('login'))
         
 @app.route('/api/users/<int:user_id>/follow', methods=['POST'])
 @login_required
@@ -203,7 +224,12 @@ def getImage(filename):
     
 
 
-        
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,access-control-allow-origin')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response        
         
 
     

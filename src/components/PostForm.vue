@@ -1,75 +1,79 @@
 <template>
     <form method="POST" enctype="multipart/form-data" @submit.prevent="postData" id="postForm" action="/api/v1/users/{{ user_id }}/posts">
-        
+        <div v-if="postStatus === 'success'" class="alert alert-success" role="alert">
+            Post made successfuly! Redirecting to the explore page!
+        </div>
+        <div v-if="postStatus === 'failed'" class="alert alert-danger" role="alert">
+            Something weng wrong in posting, try again...
+        </div>
+        <div v-if="postStatus === 'fail-safe'" class="alert alert-danger" role="alert">
+            This user is not logged in. You will now be redirected...
+        </div>
         <div class="form-group mb-3">
             <label for="photo" class="form-label">Photo</label>
-            <input type="file" name="photo" class="form-control"  />
+            <input type="file" name="photo" class="form-control" required/>
         </div>
 
         <div class="form-group mb-3">
             <label for="caption" class="form-label">Caption</label>
-            <textarea name="caption" class="form-control"></textarea>
+            <textarea name="caption" class="form-control" required></textarea>
         </div>
 
         <div class="form-group mb-3">
-            <button type="submit" class="btn btn-primary" @change="onFileChange">Submit</button>
+            <button type="submit" class="form-control btn btn-primary">Submit</button>
         </div>
     </form>
 </template>
 
-<script>
-import { ref, onMounted } from "vue";
 
-export default {
-    name: "CreatePosts",
-    props: {
-        user_id: {
-        type: Number,
-        required: true
+<script setup>
+import axios from 'axios'
+import { ref, onMounted, defineEmits } from "vue";
+import { RouterLink } from "vue-router";
+
+const emit = defineEmits(['notification', 'type']);
+
+
+const token = localStorage.getItem('JWT');
+const userId = localStorage.getItem('user_id');
+const postStatus = ref(null);
+
+function postData() {
+    let postForm = document.getElementById("postForm");
+    let formData = new FormData(postForm);
+
+    axios.post(`http://127.0.0.1:8080/api/v1/users/${userId}/posts`, formData, {
+        headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
+        'Access-Control-Allow-Origin': '*',
         }
-    },
-    setup(props) {
-        let csrf_token = ref("");
-
-        function getCsrfToken() {
-            fetch('http://127.0.0.1:8080/api/v1/csrf-token')
-                .then((response) => response.json())
-                .then((data) => {
-                    console.log(data);
-                    csrf_token.value = data.csrf_token;
-            })
+    })
+    .then(response => {
+        console.log(response.data);
+        postStatus.value = 'success';
+        setTimeout(() => {
+            console.log('Timer completed!');
+            window.location.href='/explore';
+        }, 3000);
+    })
+    .catch(error => {
+        if (userId != null) {
+            postStatus.value = 'failed';
+            window.location.href = "#";
+        } else {
+            postStatus.value = 'fail-safe';
+            setTimeout(() => {
+                window.location.href='/login';
+            }, 3000);
         }
-
-        onMounted(() => {
-            getCsrfToken();
-        });
-
-        function postData() {
-            let postForm = document.getElementById('postForm');
-            let form_data = new FormData(postForm);
-            console.log('CSRF Token:', csrf_token.value);  
-            fetch(`http://127.0.0.1:8080/api/v1/users/${props.user_id}/posts`, {
-                method: 'POST',
-                body: form_data,
-                headers: {
-                    'X-CSRFToken': csrf_token.value
-                }
-            })
-            .then(function (response) {
-                return response.json();
-            })
-            .then(function (data) {
-                console.log(data);
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-        }
-
-        return {
-            csrf_token,
-            postData,
-        }
+    });
+    return{
+        postStatus,
     }
 }
+function onFileChange(e) {
+    this.photo = e.target.files[0]
+}
+
 </script>

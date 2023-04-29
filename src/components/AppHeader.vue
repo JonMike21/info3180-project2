@@ -26,7 +26,7 @@
               <RouterLink class="nav-link" to="/about">About</RouterLink>
             </li>
             <li class="nav-item">
-              <router-link to="/login" class="nav-link">Login</router-link>
+              <router-link to="/logout" class="nav-link">Logout</router-link>
             </li>
           </ul>
         </div>

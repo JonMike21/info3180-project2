@@ -45,7 +45,7 @@
       </div>
 
       <div class="form-group mb-3">
-        <button type="submit" class="btn btn-primary" @change="onFileChange">Submit</button>
+        <button type="submit" class="btn reg-btn-primary" @change="onFileChange">Submit</button>
       </div>
     </div>
 

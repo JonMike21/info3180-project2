@@ -39,6 +39,7 @@ let message = ref("Share photos of your favourite moments with friends, family a
 
 .msg {
   max-width: 85%;
+  font-size: 25px;
 }
 
 .gram-line {
@@ -53,6 +54,7 @@ let message = ref("Share photos of your favourite moments with friends, family a
   max-height: 450px;
   width: 50%;
   border: 1px solid #ccc;
+  background-color: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -80,10 +82,17 @@ let message = ref("Share photos of your favourite moments with friends, family a
 
 .buttons {
   display: flex;
+  max-width: 85%;
   gap: 15px;
+}
+
+.btn-primary {
+  background-color: #4a90e2;
+  padding: 10px 60px;
 }
 
 .btn-secondary {
   background-color: #7ed321;
+  padding: 10px 60px;
 }
 </style>

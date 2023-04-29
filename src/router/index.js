@@ -4,6 +4,7 @@ import AddRegistry from '../views/RegisterView.vue'
 import LoginForms from '../views/LoginView.vue'
 import NewPost from '../views/CreatePosts.vue'
 import Explore from '../views/ExploreView.vue'
+import Logout from '../components/Logout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,11 @@ const router = createRouter({
       path: '/explore',
       name: 'explore',
       component: Explore
+    },
+    {
+      path: '/logout',
+      name: 'logout',
+      component: Logout
     }
   ]
 })

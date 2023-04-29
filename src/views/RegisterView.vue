@@ -60,4 +60,9 @@ export default {
     flex-basis: 50%;
     padding: 10px;
 }
+
+.reg-btn-primary{
+  background-color: #7ed321;
+  width: 100%;
+}
 </style>

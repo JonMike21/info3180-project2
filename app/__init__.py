@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 
 
 
@@ -23,6 +24,8 @@ cors = CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http:/
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+jwt = JWTManager(app)
 
 from app import views
 
