@@ -23,7 +23,7 @@
               <router-link to="/explore" class="nav-link">Explore</router-link>
             </li>
             <li class="nav-item">
-              <RouterLink class="nav-link" to="/about">About</RouterLink>
+              <RouterLink class="nav-link" to="/users/:id">My Profile</RouterLink>
             </li>
             <li class="nav-item">
               <router-link to="/logout" class="nav-link">Logout</router-link>

@@ -55,6 +55,10 @@ export default {
                 .then((data) => {
                     const userid =data.id
                     localStorage.setItem("user_id",userid)
+                    const username = data.username
+                    localStorage.setItem("username",username)
+                    const pfp = data.profile_photo
+                    localStorage.setItem("pfp",pfp)
                     const token = data.token
                     localStorage.setItem("token",token)
                     loginStatus.value = 'success';

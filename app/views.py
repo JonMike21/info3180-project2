@@ -152,17 +152,41 @@ def addPosts(user_id):
             return jsonify(errors=form_errors(form))
         
         if request.method == 'GET':
+            if not user_id:
+                response = {
+                    'error': 'User not found'
+                }
+                return (response), 404
+
             idd=user_id
-            #u_posts = db.session.execute(db.select(Posts).filter_by(user_id=idd)).scalar() #was giving an error maybe from scalar()
             u_posts = db.session.query(Posts).filter_by(user_id=idd).all()
+            numposts = len(u_posts)
             for pos in u_posts:
                 p_list.append({
                     'id': pos.id,
                     'caption': pos.caption,
                     'photo': url_for('getImage',filename=pos.photo),
                     'created_at': pos.created_at
-                    })
-            return jsonify(data=p_list)
+                })
+            
+            user = db.session.query(Users).filter_by(id=user_id).first()
+            user_info = {
+                'id': user.id,
+                'username': user.username,
+                'firstname': user.firstname,
+                'lastname': user.lastname,
+                'email': user.email,
+                'location': user.location,
+                'biography': user.biography,
+                'profile_photo': url_for('getImage', filename=user.profile_photo),
+                'joined_on': user.joined_on,
+                'numposts': numposts
+            }
+            
+            response_data = {
+                'user_info': user_info
+             }
+            return jsonify(response_data)
     else:
         return redirect(url_for('login'))
         

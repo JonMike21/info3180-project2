@@ -5,6 +5,7 @@ import LoginForms from '../views/LoginView.vue'
 import NewPost from '../views/CreatePosts.vue'
 import Explore from '../views/ExploreView.vue'
 import Logout from '../components/Logout.vue'
+import UserProfiles from '../views/profileInfo.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,11 @@ const router = createRouter({
       path: '/logout',
       name: 'logout',
       component: Logout
+    },
+    {
+      path: '/users/:id',
+      name: 'profile',
+      component: UserProfiles
     }
   ]
 })

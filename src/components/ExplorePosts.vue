@@ -3,8 +3,9 @@
         <div class="post-container">
             <div v-for="post in posts.slice().reverse()" :key="post.id">
                 <div class="card explore">
-                    <h2>{{ post.caption }}</h2>
-                    <img :src="post.photo" alt="post image">
+                    <h6>{{ username }}</h6>
+                    <img v-bind:src="'http://localhost:8080'+ post.photo" alt="image post" class="card-img-top"> 
+                    <p>{{ post.caption }}</p>
                     <p>{{ formatDate(post.created_at) }}</p>
                 </div>
             </div>
@@ -17,6 +18,8 @@
   
   
 <script>
+
+const username = localStorage.getItem('username')
 export default {
     name: "Explore",
     data() {
@@ -26,13 +29,24 @@ export default {
     },
     mounted() {
         fetch('http://127.0.0.1:8080/api/v1/posts')
-        .then(response => response.json())
-        .then(data => {
-            this.posts = data.data
-        })
-        .catch(error => {
-            console.log(error)
-        })
+            .then(response => response.json())
+            .then(data => {
+                this.username = username
+                this.posts = data.data
+                this.posts.forEach(post => {
+                    fetch(`http://127.0.0.1:8080/api/v1/photo/${post.photo}`)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            post.photo = URL.createObjectURL(blob)
+                        })
+                        .catch(error => {
+                            console.log(error)
+                        })
+                })
+            })
+            .catch(error => {
+                console.log(error)
+            })
     },
     methods: {
         formatDate(date) {
